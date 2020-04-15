@@ -54,10 +54,10 @@ const Vertex = extern struct {
     b: c_float,
 };
 extern const vertices = [_]c_float{
-    0.5,  0.5,  0.0,
-    0.5,  -0.5, 0.0,
-    -0.5, -0.5, 0.0,
-    -0.5, 0.5,  0.0,
+    0.5,  0.5,  0.0, 1.0, 0.0, 0.0,
+    0.5,  -0.5, 0.0, 0.0, 1.0, 0.0,
+    -0.5, -0.5, 0.0, 0.0, 0.0, 1.0,
+    -0.5, 0.5,  0.0, 1.0, 1.0, 1.0,
 };
 extern const indices = [_]c_uint{
     0, 1, 3,
@@ -160,8 +160,11 @@ pub fn main() !void {
     c.glBindBuffer(c.GL_ELEMENT_ARRAY_BUFFER, elementBufferObjects);
     c.glBufferData(c.GL_ELEMENT_ARRAY_BUFFER, @sizeOf(@TypeOf(indices)), @ptrCast(*const c_void, &indices), c.GL_STATIC_DRAW);
 
-    c.glVertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 3 * @sizeOf(c_float), null);
+    c.glVertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 6 * @sizeOf(c_float), @intToPtr(?*c_void, 0)); // that last arg should be a size_t but is a void* for some reason
     c.glEnableVertexAttribArray(0);
+
+    c.glVertexAttribPointer(1, 3, c.GL_FLOAT, c.GL_FALSE, 6 * @sizeOf(c_float), @intToPtr(?*c_void, 3 * @sizeOf(c_float)));
+    c.glEnableVertexAttribArray(1);
 
     var vertexColorLocation = c.glGetUniformLocation(shaderProgram, "ourColor"); // valid until next link
 
@@ -175,7 +178,7 @@ pub fn main() !void {
 
         var timeValue: f32 = @floatCast(f32, c.glfwGetTime());
         var greenValue = std.math.sin(timeValue) / 2.0 + 0.5;
-        c.glUniform4f(vertexColorLocation, 0.0, greenValue, 1.0, 1.0);
+        c.glUniform4f(vertexColorLocation, 1.0, greenValue, 1.0, 1.0);
 
         c.glBindVertexArray(vao);
         c.glDrawElements(c.GL_TRIANGLES, indices.len, c.GL_UNSIGNED_INT, null);
