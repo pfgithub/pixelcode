@@ -131,11 +131,13 @@ pub fn main() !void {
 
     var vao: c_uint = undefined;
     c.glGenVertexArrays(1, &vao);
+    defer c.glDeleteVertexArrays(1, &vao);
 
     c.glBindVertexArray(vao);
 
     var VBO: c_uint = undefined;
     c.glGenBuffers(1, &VBO);
+    defer c.glDeleteBuffers(1, &VBO);
 
     c.glBindBuffer(c.GL_ARRAY_BUFFER, VBO);
     c.glBufferData(c.GL_ARRAY_BUFFER, @sizeOf(@TypeOf(vertices)), @ptrCast(*const c_void, &vertices), c.GL_STATIC_DRAW);
