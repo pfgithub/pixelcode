@@ -163,6 +163,8 @@ pub fn main() !void {
     c.glVertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 3 * @sizeOf(c_float), null);
     c.glEnableVertexAttribArray(0);
 
+    var vertexColorLocation = c.glGetUniformLocation(shaderProgram, "ourColor"); // valid until next link
+
     while (c.glfwWindowShouldClose(window.glfwWindow) == 0) {
         processInput(window);
 
@@ -170,11 +172,16 @@ pub fn main() !void {
         c.glClear(c.GL_COLOR_BUFFER_BIT);
 
         c.glUseProgram(shaderProgram);
+
+        var timeValue: f32 = @floatCast(f32, c.glfwGetTime());
+        var greenValue = std.math.sin(timeValue) / 2.0 + 0.5;
+        c.glUniform4f(vertexColorLocation, 0.0, greenValue, 1.0, 1.0);
+
         c.glBindVertexArray(vao);
         c.glDrawElements(c.GL_TRIANGLES, indices.len, c.GL_UNSIGNED_INT, null);
 
         c.glfwSwapBuffers(window.glfwWindow);
-        // c.glfwPollEvents();
-        c.glfwWaitEvents(); // there is also waitEventsTimeout(sec: c_float) which could be nice. also another thread can glfwPostEmptyEvent() to wake this
+        c.glfwPollEvents();
+        // c.glfwWaitEvents(); // there is also waitEventsTimeout(sec: c_float) which could be nice. also another thread can glfwPostEmptyEvent() to wake this
     }
 }
