@@ -202,6 +202,7 @@ pub fn main() !void {
     c.glEnableVertexAttribArray(1);
 
     var vertexColor = shaderProgram.get("ourColor");
+    var diagonalOffset = shaderProgram.get("offset");
 
     while (c.glfwWindowShouldClose(window.glfwWindow) == 0) {
         processInput(window);
@@ -214,6 +215,7 @@ pub fn main() !void {
         var timeValue: f32 = @floatCast(f32, c.glfwGetTime());
         var greenValue = std.math.sin(timeValue) / 2.0 + 0.5;
         vertexColor.setVec4(1.0, greenValue, 1.0, 1.0);
+        diagonalOffset.setFloat(std.math.sin(timeValue) * 0.5);
 
         c.glBindVertexArray(vao);
         c.glDrawElements(c.GL_TRIANGLES, indices.len, c.GL_UNSIGNED_INT, null);
