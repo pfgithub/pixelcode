@@ -166,7 +166,8 @@ pub fn main() !void {
     var w: c_int = undefined;
     var h: c_int = undefined;
     var channels: c_int = undefined;
-    var image = c.stbi_load_from_memory(fontFile, fontFile.len, &w, &h, &channels, 4);
+    var image = c.stbi_load_from_memory(fontFile, fontFile.len, &w, &h, &channels, 0); // imagine comptime c.stbi_load_from_memory
+    // that wouldn't be doable unfortunately because it allocates memory
     if (image == null) return error.ImageLoadFailed;
     defer c.stbi_image_free(image);
 
