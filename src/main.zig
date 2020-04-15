@@ -1,5 +1,7 @@
 const std = @import("std");
 const c = @cImport({
+    @cInclude("stb_image.h");
+
     @cInclude("glad/glad.h");
     @cDefine("GLFW_INCLUDE_NONE", "");
     @cInclude("GLFW/glfw3.h");
@@ -155,9 +157,20 @@ const ShaderProgram = struct {
     }
 };
 
+const fontFile = @embedFile("font.png");
+
 pub fn main() !void {
     try glfwInit();
     defer glfwDeinit();
+
+    var w: c_int = undefined;
+    var h: c_int = undefined;
+    var channels: c_int = undefined;
+    var image = c.stbi_load_from_memory(fontFile, fontFile.len, &w, &h, &channels, 4);
+    if (image == null) return error.ImageLoadFailed;
+    defer c.stbi_image_free(image);
+
+    std.debug.warn("Image: {}x{}, {} channels\n", .{ w, h, channels });
 
     var window = try Window.init();
     defer window.deinit();
