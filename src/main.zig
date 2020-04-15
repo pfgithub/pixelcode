@@ -103,25 +103,16 @@ fn processInput(window: Window) void {
     }
 }
 
-pub fn main() !void {
-    try glfwInit();
-    defer glfwDeinit();
-
-    var window = try Window.init();
-    defer window.deinit();
-
-    c.glfwMakeContextCurrent(window.glfwWindow);
-    if (c.gladLoadGLLoader(@ptrCast(c.GLADloadproc, c.glfwGetProcAddress)) == 0)
-        return error.GladInitFailed;
-
-    c.glViewport(0, 0, 800, 600);
-    _ = c.glfwSetFramebufferSizeCallback(window.glfwWindow, framebufferSizeCallback);
-
-    var shaderProgram = blk: {
+const ShaderProgram = struct {
+    id: c_uint,
+    pub fn init(src: struct {
+        vert: [:0]const u8,
+        frag: [:0]const u8,
+    }) !ShaderProgram {
         var shaderProgram = c.glCreateProgram();
-        var vertexShader: c_uint = try compileShader(@embedFile("shader.vert"), .vertex);
+        var vertexShader: c_uint = try compileShader(src.vert, .vertex);
         defer c.glDeleteShader(vertexShader);
-        var fragmentShader: c_uint = try compileShader(@embedFile("shader.frag"), .fragment);
+        var fragmentShader: c_uint = try compileShader(src.frag, .fragment);
         defer c.glDeleteShader(fragmentShader);
 
         c.glAttachShader(shaderProgram, vertexShader);
@@ -136,9 +127,53 @@ pub fn main() !void {
             return error.ShaderProgramLinkFailed;
         }
 
-        break :blk shaderProgram;
+        return ShaderProgram{ .id = shaderProgram };
+    }
+    pub fn deinit(shaderProgram: ShaderProgram) void {}
+    fn use(shaderProgram: ShaderProgram) void {
+        c.glUseProgram(shaderProgram.id);
+    }
+    pub const Prop = struct {
+        uniformLocation: c.GLint,
+        fn setBool(prop: Prop, value: bool) void {
+            prop.setInt(if (value) 1 else 0);
+        }
+        fn setInt(prop: Prop, value: c_int) void {
+            c.glUniform1i(prop.uniformLocation, value);
+        }
+        fn setFloat(prop: Prop, value: c_float) void {
+            c.glUniform1f(prop.uniformLocation, value);
+        }
+        fn setVec4(prop: Prop, v1: c_float, v2: c_float, v3: c_float, v4: c_float) void {
+            c.glUniform4f(prop.uniformLocation, v1, v2, v3, v4);
+        }
     };
-    c.glUseProgram(shaderProgram);
+    fn get(program: ShaderProgram, prop: [:0]const u8) Prop {
+        return Prop{
+            .uniformLocation = c.glGetUniformLocation(program.id, prop),
+        };
+    }
+};
+
+pub fn main() !void {
+    try glfwInit();
+    defer glfwDeinit();
+
+    var window = try Window.init();
+    defer window.deinit();
+
+    c.glfwMakeContextCurrent(window.glfwWindow);
+    if (c.gladLoadGLLoader(@ptrCast(c.GLADloadproc, c.glfwGetProcAddress)) == 0)
+        return error.GladInitFailed;
+
+    c.glViewport(0, 0, 800, 600);
+    _ = c.glfwSetFramebufferSizeCallback(window.glfwWindow, framebufferSizeCallback);
+
+    var shaderProgram = try ShaderProgram.init(.{
+        .vert = @embedFile("shader.vert"),
+        .frag = @embedFile("shader.frag"),
+    });
+    defer shaderProgram.deinit();
 
     var vao: c_uint = undefined;
     c.glGenVertexArrays(1, &vao);
@@ -166,7 +201,7 @@ pub fn main() !void {
     c.glVertexAttribPointer(1, 3, c.GL_FLOAT, c.GL_FALSE, 6 * @sizeOf(c_float), @intToPtr(?*c_void, 3 * @sizeOf(c_float)));
     c.glEnableVertexAttribArray(1);
 
-    var vertexColorLocation = c.glGetUniformLocation(shaderProgram, "ourColor"); // valid until next link
+    var vertexColor = shaderProgram.get("ourColor");
 
     while (c.glfwWindowShouldClose(window.glfwWindow) == 0) {
         processInput(window);
@@ -174,11 +209,11 @@ pub fn main() !void {
         c.glClearColor(0.2, 0.3, 0.3, 1.0);
         c.glClear(c.GL_COLOR_BUFFER_BIT);
 
-        c.glUseProgram(shaderProgram);
+        shaderProgram.use();
 
         var timeValue: f32 = @floatCast(f32, c.glfwGetTime());
         var greenValue = std.math.sin(timeValue) / 2.0 + 0.5;
-        c.glUniform4f(vertexColorLocation, 1.0, greenValue, 1.0, 1.0);
+        vertexColor.setVec4(1.0, greenValue, 1.0, 1.0);
 
         c.glBindVertexArray(vao);
         c.glDrawElements(c.GL_TRIANGLES, indices.len, c.GL_UNSIGNED_INT, null);
