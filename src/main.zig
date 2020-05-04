@@ -56,10 +56,10 @@ const Vertex = extern struct {
     b: c_float,
 };
 extern const vertices = [_]c_float{
-    0.5,  0.5,  0.0, 1.0, 0.0, 0.0,
-    0.5,  -0.5, 0.0, 0.0, 1.0, 0.0,
-    -0.5, -0.5, 0.0, 0.0, 0.0, 1.0,
-    -0.5, 0.5,  0.0, 1.0, 1.0, 1.0,
+    0.5,  0.5,  0.0, 1.0, 0.0, 0.0, 1.0, 1.0, // top right
+    0.5,  -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, // bottom right
+    -0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, // bottom left
+    -0.5, 0.5,  0.0, 1.0, 1.0, 1.0, 0.0, 1.0, // top left
 };
 extern const indices = [_]c_uint{
     0, 1, 3,
@@ -156,22 +156,55 @@ const ShaderProgram = struct {
         };
     }
 };
-
-const fontFile = @embedFile("font.png");
-
-pub fn main() !void {
-    try glfwInit();
-    defer glfwDeinit();
-
+fn loadTexture(data: [:0]const u8) !c_uint {
     var w: c_int = undefined;
     var h: c_int = undefined;
     var channels: c_int = undefined;
-    var image = c.stbi_load_from_memory(fontFile, fontFile.len, &w, &h, &channels, 0); // imagine comptime c.stbi_load_from_memory
+
+    var image = c.stbi_load_from_memory(data, @intCast(c_int, data.len), &w, &h, &channels, 0); // imagine comptime c.stbi_load_from_memory
     // that wouldn't be doable unfortunately because it allocates memory
     if (image == null) return error.ImageLoadFailed;
     defer c.stbi_image_free(image);
 
     std.debug.warn("Image: {}x{}, {} channels\n", .{ w, h, channels });
+
+    var texture: c_uint = undefined;
+    c.glGenTextures(1, &texture);
+    c.glBindTexture(c.GL_TEXTURE_2D, texture);
+
+    c.glTexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_WRAP_S, c.GL_REPEAT);
+    c.glTexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_WRAP_T, c.GL_REPEAT);
+    c.glTexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_MIN_FILTER, c.GL_LINEAR);
+    c.glTexParameteri(c.GL_TEXTURE_2D, c.GL_TEXTURE_MAG_FILTER, c.GL_LINEAR);
+
+    c.glTexImage2D(c.GL_TEXTURE_2D, 0, c.GL_RGB, w, h, 0, c.GL_RGBA, c.GL_UNSIGNED_BYTE, image); // this might not work because our texture has 4 channels
+    c.glGenerateMipmap(c.GL_TEXTURE_2D);
+
+    return texture;
+}
+
+fn vertexAttribPointer(
+    index: c.GLuint,
+    size: c.GLint,
+    type_: c.GLenum,
+    normalized: c.GLboolean,
+    total: usize,
+    offset: usize,
+) !void {
+    c.glVertexAttribPointer(
+        index,
+        size,
+        type_,
+        normalized,
+        size,
+        @intToPtr(?*c_void, offset),
+    ); // that last arg should be a size_t but is a void* for some reason
+    c.glEnableVertexAttribArray(index);
+}
+
+pub fn main() !void {
+    try glfwInit();
+    defer glfwDeinit();
 
     var window = try Window.init();
     defer window.deinit();
@@ -209,14 +242,15 @@ pub fn main() !void {
     c.glBindBuffer(c.GL_ELEMENT_ARRAY_BUFFER, elementBufferObjects);
     c.glBufferData(c.GL_ELEMENT_ARRAY_BUFFER, @sizeOf(@TypeOf(indices)), @ptrCast(*const c_void, &indices), c.GL_STATIC_DRAW);
 
-    c.glVertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 6 * @sizeOf(c_float), @intToPtr(?*c_void, 0)); // that last arg should be a size_t but is a void* for some reason
-    c.glEnableVertexAttribArray(0);
+    try vertexAttribPointer(0, 3, c.GL_FLOAT, c.GL_FALSE, 8 * @sizeOf(c_float), 0 * @sizeOf(c_float));
+    try vertexAttribPointer(1, 3, c.GL_FLOAT, c.GL_FALSE, 8 * @sizeOf(c_float), 3 * @sizeOf(c_float));
+    try vertexAttribPointer(2, 2, c.GL_FLOAT, c.GL_FALSE, 8 * @sizeOf(c_float), 6 * @sizeOf(c_float)); // I think this is broken
 
-    c.glVertexAttribPointer(1, 3, c.GL_FLOAT, c.GL_FALSE, 6 * @sizeOf(c_float), @intToPtr(?*c_void, 3 * @sizeOf(c_float)));
-    c.glEnableVertexAttribArray(1);
+    // var texture = try loadTexture(@embedFile("font.png"));
 
-    var vertexColor = shaderProgram.get("ourColor");
+    // var vertexColor = shaderProgram.get("ourColor");
     var diagonalOffset = shaderProgram.get("offset");
+    // shaderProgram.get("ourTexture").setInt(0);
 
     while (c.glfwWindowShouldClose(window.glfwWindow) == 0) {
         processInput(window);
@@ -227,10 +261,12 @@ pub fn main() !void {
         shaderProgram.use();
 
         var timeValue: f32 = @floatCast(f32, c.glfwGetTime());
-        var greenValue = std.math.sin(timeValue) / 2.0 + 0.5;
-        vertexColor.setVec4(1.0, greenValue, 1.0, 1.0);
+        // var greenValue = std.math.sin(timeValue) / 2.0 + 0.5;
+        // vertexColor.setVec4(1.0, greenValue, 1.0, 1.0);
         diagonalOffset.setFloat(std.math.sin(timeValue) * 0.5);
 
+        // c.glActiveTexture(c.GL_TEXTURE0);
+        // c.glBindTexture(c.GL_TEXTURE_2D, texture);
         c.glBindVertexArray(vao);
         c.glDrawElements(c.GL_TRIANGLES, indices.len, c.GL_UNSIGNED_INT, null);
 
