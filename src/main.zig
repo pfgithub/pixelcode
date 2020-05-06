@@ -39,7 +39,13 @@ pub fn main() !void {
     camera.zoom = 2;
 
     while (!c.WindowShouldClose()) {
-        camera.zoom += (@intToFloat(f32, c.GetMouseWheelMove()) * 0.05);
+        const mwm = c.GetMouseWheelMove();
+        if (mwm > 0) {
+            camera.zoom *= 2;
+        } else if (mwm < 0) {
+            camera.zoom /= 2;
+        }
+        if (camera.zoom < 1) camera.zoom = 1;
 
         {
             c.BeginDrawing();
