@@ -10,7 +10,7 @@ pub fn renderChar(texture: c.Texture2D, char: u8, color: c.Color, x: c_int, y: c
 
     c.workaroundDrawTextureRec(
         texture,
-        &c.Rectangle{ .x = 6 * col, .y = 12 * row, .width = 6, .height = 12 },
+        &c.Rectangle{ .x = 6 * col + 1, .y = 12 * row + 1, .width = 6, .height = 12 },
         x,
         y,
         &color,
