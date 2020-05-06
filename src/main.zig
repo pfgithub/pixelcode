@@ -8,6 +8,8 @@ pub fn main() !void {
     const screenHeight = 450;
 
     c.InitWindow(screenWidth, screenHeight, "raylib demo");
+    defer c.CloseWindow();
+
     c.SetTargetFPS(60);
 
     while (!c.WindowShouldClose()) {
