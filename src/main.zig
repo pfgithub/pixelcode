@@ -53,9 +53,9 @@ pub fn main() !void {
     while (!c.WindowShouldClose()) {
         const mwm = c.GetMouseWheelMove();
         if (mwm > 0) {
-            camera.zoom *= 2;
+            camera.zoom += 1;
         } else if (mwm < 0) {
-            camera.zoom /= 2;
+            camera.zoom -= 1;
         }
         if (camera.zoom < 1) camera.zoom = 1;
 
