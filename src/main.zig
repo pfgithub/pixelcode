@@ -26,6 +26,11 @@ pub fn hex(comptime color: u24) c.Color {
     };
 }
 
+const Style = struct {
+    color: c.Color,
+    bump: ?c.Color = null,
+};
+
 pub fn main() !void {
     const screenWidth = 800;
     const screenHeight = 450;
@@ -74,19 +79,17 @@ pub fn main() !void {
             const left: c_int = 50;
             const top: c_int = 10;
             for (demotxt) |char| {
-                const col = switch (char) {
-                    '\t' => blk: {
-                        x += 1;
-                        break :blk hex(0x313049);
-                    },
-                    ' ', '\n' => hex(0x313049),
-                    '(', ')', '{', '}', ';', '"' => hex(0x5b597e),
-                    else => blk: {
-                        renderChar(texture, char, hex(0x65458f), x + left, y + top + 1);
-                        break :blk hex(0xFFFFFF);
-                    },
+                if (char == '\t') {
+                    x += 1;
+                }
+                const style: Style = switch (char) {
+                    '\t', ' ', '\n' => .{ .color = hex(0x313049) },
+                    '(', ')', '{', '}', ';', '"' => .{ .color = hex(0x5b597e) },
+                    else => .{ .color = hex(0xFFFFFF), .bump = hex(0x65458f) },
                 };
-                renderChar(texture, char, col, x + left, y + top);
+                if (style.bump) |bump|
+                    renderChar(texture, char, bump, x + left, y + top + 1);
+                renderChar(texture, char, style.color, x + left, y + top);
 
                 if (char == '\n') {
                     x = 0;
