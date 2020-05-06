@@ -62,11 +62,15 @@ pub fn main() !void {
             const left: c_int = 50;
             const top: c_int = 10;
             for (demotxt) |char| {
-                renderChar(texture, char, switch (char) {
+                const col = switch (char) {
                     ' ', '\n' => c.Color{ .r = 80, .g = 80, .b = 80, .a = 255 },
                     '(', ')', '{', '}', ';', '"' => c.Color{ .r = 128, .g = 128, .b = 128, .a = 255 },
-                    else => c.Color{ .r = 255, .g = 255, .b = 255, .a = 255 },
-                }, x + left, y + top);
+                    else => blk: {
+                        renderChar(texture, char, c.Color{ .r = 128, .g = 128, .b = 128, .a = 255 }, x + left, y + top + 1);
+                        break :blk c.Color{ .r = 255, .g = 255, .b = 255, .a = 255 };
+                    },
+                };
+                renderChar(texture, char, col, x + left, y + top);
 
                 if (char == '\n') {
                     x = 0;
