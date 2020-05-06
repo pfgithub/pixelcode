@@ -21,7 +21,7 @@ pub fn main() !void {
     const screenWidth = 800;
     const screenHeight = 450;
 
-    const demotxt = "pub fn main() !void {\n    @import(\"std\").debug.warn(\"Hello, {}!\", .{\"World\"})\n}";
+    const demotxt = "pub fn main() !void {\n    @import(\"std\").debug.warn(\"Hello, {}!\", .{\"World\"});\n}\n";
 
     c.SetConfigFlags(c.FLAG_WINDOW_RESIZABLE);
     c.InitWindow(screenWidth, screenHeight, "raylib demo");
@@ -41,13 +41,18 @@ pub fn main() !void {
             var x: c_int = 10;
             var y: c_int = 10;
             for (demotxt) |char| {
+                renderChar(texture, char, switch (char) {
+                    ' ', '\n' => c.Color{ .r = 80, .g = 80, .b = 80, .a = 255 },
+                    '(', ')', '{', '}', ';', '"' => c.Color{ .r = 128, .g = 128, .b = 128, .a = 255 },
+                    else => c.Color{ .r = 255, .g = 255, .b = 255, .a = 255 },
+                }, x, y);
+
                 if (char == '\n') {
                     x = 10;
                     y += 11;
-                    continue;
+                } else {
+                    x += 5;
                 }
-                renderChar(texture, char, c.Color{ .r = 0, .g = 255, .b = 255, .a = 255 }, x, y);
-                x += 5;
             }
         }
     }
