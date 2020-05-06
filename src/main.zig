@@ -17,11 +17,23 @@ pub fn renderChar(texture: c.Texture2D, char: u8, color: c.Color, x: c_int, y: c
     );
 }
 
+pub fn hex(comptime color: u24) c.Color {
+    return c.Color{
+        .r = (color >> 16),
+        .g = (color >> 8) & 0xFF,
+        .b = color & 0xFF,
+        .a = 0xFF,
+    };
+}
+
 pub fn main() !void {
     const screenWidth = 800;
     const screenHeight = 450;
 
-    const demotxt = "pub fn main() !void {\n    @import(\"std\").debug.warn(\"Hello, {}!\", .{\"World\"});\n}\n";
+    const demotxt = "const std = @import(\"std\");\n" ++
+        "pub fn main() !void {\n" ++
+        "\tstd.debug.warn(\"Hi!\");\n" ++
+        "}\n";
 
     c.SetConfigFlags(c.FLAG_WINDOW_RESIZABLE);
     c.InitWindow(screenWidth, screenHeight, "raylib demo");
@@ -51,7 +63,7 @@ pub fn main() !void {
             c.BeginDrawing();
             defer c.EndDrawing();
 
-            c.ClearBackground(.{ .r = 46, .g = 52, .b = 64, .a = 255 });
+            c.ClearBackground(hex(0x222034));
 
             c.BeginMode2D(camera);
             defer c.EndMode2D();
@@ -63,11 +75,15 @@ pub fn main() !void {
             const top: c_int = 10;
             for (demotxt) |char| {
                 const col = switch (char) {
-                    ' ', '\n' => c.Color{ .r = 80, .g = 80, .b = 80, .a = 255 },
-                    '(', ')', '{', '}', ';', '"' => c.Color{ .r = 128, .g = 128, .b = 128, .a = 255 },
+                    '\t' => blk: {
+                        x += 1;
+                        break :blk hex(0x313049);
+                    },
+                    ' ', '\n' => hex(0x313049),
+                    '(', ')', '{', '}', ';', '"' => hex(0x5b597e),
                     else => blk: {
-                        renderChar(texture, char, c.Color{ .r = 128, .g = 128, .b = 128, .a = 255 }, x + left, y + top + 1);
-                        break :blk c.Color{ .r = 255, .g = 255, .b = 255, .a = 255 };
+                        renderChar(texture, char, hex(0x65458f), x + left, y + top + 1);
+                        break :blk hex(0xFFFFFF);
                     },
                 };
                 renderChar(texture, char, col, x + left, y + top);
@@ -76,6 +92,8 @@ pub fn main() !void {
                     x = 0;
                     y += 11;
                     lineno += 1;
+                } else if (char == '\t') {
+                    x += 19;
                 } else {
                     x += 5;
                 }
