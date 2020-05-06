@@ -32,12 +32,24 @@ pub fn main() !void {
 
     c.SetTargetFPS(60);
 
+    var camera: c.Camera2D = std.mem.zeroes(c.Camera2D);
+    camera.target = .{ .x = 0, .y = 0 };
+    camera.offset = .{ .x = 0, .y = 0 };
+    camera.rotation = 0;
+    camera.zoom = 2;
+
     while (!c.WindowShouldClose()) {
+        camera.zoom += (@intToFloat(f32, c.GetMouseWheelMove()) * 0.05);
+
         {
             c.BeginDrawing();
             defer c.EndDrawing();
 
             c.ClearBackground(.{ .r = 46, .g = 52, .b = 64, .a = 255 });
+
+            c.BeginMode2D(camera);
+            defer c.EndMode2D();
+
             var x: c_int = 10;
             var y: c_int = 10;
             for (demotxt) |char| {
