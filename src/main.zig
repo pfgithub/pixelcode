@@ -26,7 +26,7 @@ pub fn main() !void {
                 texture,
                 @divFloor(screenWidth, 2) - @divFloor(texture.width, 2),
                 @divFloor(screenHeight, 2) - @divFloor(texture.height, 2),
-                .{ .r = 255, .g = 255, .b = 255, .a = 255 },
+                .{ .r = 0, .g = 255, .b = 255, .a = 255 },
             );
         }
     }
