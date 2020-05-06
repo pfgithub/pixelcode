@@ -56,18 +56,22 @@ pub fn main() !void {
             c.BeginMode2D(camera);
             defer c.EndMode2D();
 
-            var x: c_int = 10;
-            var y: c_int = 10;
+            var x: c_int = 0;
+            var y: c_int = 0;
+            var lineno: c_int = 1;
+            const left: c_int = 50;
+            const top: c_int = 10;
             for (demotxt) |char| {
                 renderChar(texture, char, switch (char) {
                     ' ', '\n' => c.Color{ .r = 80, .g = 80, .b = 80, .a = 255 },
                     '(', ')', '{', '}', ';', '"' => c.Color{ .r = 128, .g = 128, .b = 128, .a = 255 },
                     else => c.Color{ .r = 255, .g = 255, .b = 255, .a = 255 },
-                }, x, y);
+                }, x + left, y + top);
 
                 if (char == '\n') {
-                    x = 10;
+                    x = 0;
                     y += 11;
+                    lineno += 1;
                 } else {
                     x += 5;
                 }
