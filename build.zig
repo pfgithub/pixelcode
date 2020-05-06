@@ -7,11 +7,7 @@ pub fn build(b: *Builder) void {
 
     const exe = b.addExecutable("glfw", "src/main.zig");
     exe.linkLibC();
-    exe.addIncludeDir("lib/stb_image/include");
-    exe.addCSourceFile("lib/stb_image/src/stb_image.c", &[_][]const u8{});
-    exe.addIncludeDir("lib/glad/include");
-    exe.addCSourceFile("lib/glad/src/glad.c", &[_][]const u8{});
-    exe.linkSystemLibrary("glfw");
+    exe.linkSystemLibrary("raylib");
     exe.setTarget(target);
     exe.setBuildMode(mode);
     exe.install();
