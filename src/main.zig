@@ -25,7 +25,7 @@ pub fn main() !void {
             c.ClearBackground(.{ .r = 46, .g = 52, .b = 64, .a = 255 });
             c.workaroundDrawTextureRec(
                 texture,
-                &c.Rectangle{ .x = 0, .y = 0, .width = 10, .height = 10 },
+                &c.Rectangle{ .x = 0, .y = 0, .width = 6, .height = 12 },
                 @divFloor(screenWidth, 2) - @divFloor(texture.width, 2),
                 @divFloor(screenHeight, 2) - @divFloor(texture.height, 2),
                 &c.Color{ .r = 0, .g = 255, .b = 255, .a = 255 },
