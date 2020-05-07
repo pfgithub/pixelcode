@@ -12,3 +12,7 @@ Requires [https://www.raylib.com/](raylib)
 ./deps/download.sh
 zig build run
 ```
+
+## notes
+
+usses [tree-sitter-zig](https://github.com/GrayJack/tree-sitter-zig) which is slightly out of date. does not support editing text yet.

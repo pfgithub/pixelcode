@@ -119,10 +119,6 @@ pub fn main() !void {
                     renderChar(texture, "0123456789"[lineno % 10], hex(0xFFFFFF), x + left, y + top);
                     x += 20;
                 }
-
-                if (char == '\t') {
-                    x += 1;
-                }
                 const style: Style = switch (renderStyle) {
                     .spacing => .{ .color = hex(0x313049) },
                     .control => .{ .color = hex(0x5b597e) },
@@ -151,7 +147,7 @@ pub fn main() !void {
                     y += 11;
                     lineno += 1;
                 } else if (char == '\t') {
-                    x += 15;
+                    x += 16;
                 } else {
                     x += 5;
                 }
