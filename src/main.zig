@@ -117,11 +117,16 @@ pub fn main() !void {
 
         var x: c_int = 0;
         var y: c_int = 0;
-        var lineno: c_int = 1;
-        const left: c_int = 50;
+        var lineno: usize = 1;
+        const left: c_int = 10;
         const top: c_int = 10;
         for (demodata) |demodat| {
             for (demodat.text) |char| {
+                if (x == 0) {
+                    renderChar(texture, "0123456789"[lineno % 10], hex(0xFFFFFF), x + left, y + top);
+                    x += 20;
+                }
+
                 if (char == '\t') {
                     x += 1;
                 }
