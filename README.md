@@ -1,3 +1,14 @@
-Requires raylib
+# pixelcode
 
-https://www.raylib.com/
+<p align="center">
+	<img src="https://raw.githubusercontent.com/pfgithub/glfw/master/.github/demo.png" alt="">
+</p>
+
+## building
+
+Requires [https://www.raylib.com/](raylib)
+
+```bash
+./deps/download.sh
+zig build run
+```

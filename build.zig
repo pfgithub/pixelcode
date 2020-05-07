@@ -5,7 +5,7 @@ pub fn build(b: *Builder) void {
 
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("glfw", "src/main.zig");
+    const exe = b.addExecutable("pixelcode", "src/main.zig");
     exe.linkLibC();
     
     // raylib
