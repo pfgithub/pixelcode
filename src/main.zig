@@ -45,7 +45,21 @@ pub fn main() !void {
 
     const alloc = std.heap.c_allocator;
 
-    const demotext = "const std = @import(\"std\");\npub fn main() !void {\n\tstd.debug.warn(\"Hi!\");\n}\n";
+    const demotext =
+        \\const std = @import("std");
+        \\pub fn main() !void {
+        \\    std.debug.warn("Hi!");
+        \\}
+        \\
+        \\\\Font test:
+        \\\\ ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        \\\\ abcdefghijklmnopqrstuvwxyz
+        \\\\ `backticks`, #hashtag, &amp;
+        \\\\ 25 < 56 <= 102 > 12?
+        \\\\ [one, two, three]
+        \\\\ 12^45 = 54 + 26 % 18 'a'
+        \\\\ one/two\three/four // comment
+    ;
 
     c.SetConfigFlags(c.FLAG_WINDOW_RESIZABLE);
     c.InitWindow(screenWidth, screenHeight, "raylib demo");

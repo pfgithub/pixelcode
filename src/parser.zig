@@ -35,6 +35,7 @@ const Class = struct {
     build_in_call_expr: bool = false,
     visibility_modifier: bool = false,
     parameters: bool = false,
+    multiline_string_literal: bool = false,
     @"=": bool = false,
     @";": bool = false,
     @".": bool = false,
@@ -49,6 +50,7 @@ const Class = struct {
     pub fn renderStyle(cs: Class, char: u8) RenderStyle {
         if (char == '\n') return .spacing;
         if (char == '\t') return .spacing;
+        if (cs.multiline_string_literal) return .string; // no differentiation between \\ and the text. also, for some reason multiline stuff is really buggy
         if (cs.string_literal) {
             if (cs.IS_CHAR_0) return .control;
             return .string;
