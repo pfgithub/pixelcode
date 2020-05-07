@@ -71,6 +71,7 @@ pub fn main() !void {
     c.SetConfigFlags(c.FLAG_WINDOW_RESIZABLE);
     c.InitWindow(screenWidth, screenHeight, "raylib demo");
     defer c.CloseWindow();
+    c.SetExitKey(0);
 
     const texture = c.LoadTexture("src/font.png");
     defer c.UnloadTexture(texture);
