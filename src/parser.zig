@@ -49,6 +49,7 @@ const Class = struct {
     @")": bool = false,
     @"{": bool = false,
     @"}": bool = false,
+    @",": bool = false,
     @"@": bool = false,
     ERROR: bool = false,
     IS_CHAR_0: bool,
@@ -71,6 +72,8 @@ const Class = struct {
         if (cs.@")") return .control;
         if (cs.@"{") return .control;
         if (cs.@"}") return .control;
+        if (cs.@",") return .control;
+        if (cs.anonymous_array_expr) return .control;
         if (cs.@"@") return .control;
         if (cs.unary_operator) return .control;
         if (cs.build_in_call_expr) {
