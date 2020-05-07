@@ -139,6 +139,12 @@ pub fn main() !void {
                     .typ => .{ .color = hex(0xdf7126) },
                     .string => .{ .color = hex(0x6abe30) },
                 };
+
+                if (char == '\t') {
+                    renderChar(texture, '-', style.color, x + left, y + top);
+                    x += 4;
+                }
+
                 if (style.bump) |bump|
                     renderChar(texture, char, bump, x + left, y + top + 1);
                 renderChar(texture, char, style.color, x + left, y + top);
@@ -148,7 +154,7 @@ pub fn main() !void {
                     y += 11;
                     lineno += 1;
                 } else if (char == '\t') {
-                    x += 19;
+                    x += 15;
                 } else {
                     x += 5;
                 }
