@@ -113,7 +113,7 @@ pub fn main() !void {
                         }, @intCast(c_int, ttii * 5) + left, 5);
                     }
                 }
-                const renderStyle = classes.renderStyle();
+                const renderStyle = classes.renderStyle(char);
 
                 if (x == 0) {
                     renderChar(texture, "0123456789"[lineno % 10], hex(0xFFFFFF), x + left, y + top);

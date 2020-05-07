@@ -35,21 +35,48 @@ const Class = struct {
     build_in_call_expr: bool = false,
     visibility_modifier: bool = false,
     parameters: bool = false,
+    @"=": bool = false,
+    @";": bool = false,
+    @".": bool = false,
+    @"(": bool = false,
+    @")": bool = false,
+    @"{": bool = false,
+    @"}": bool = false,
+    @"@": bool = false,
     ERROR: bool = false,
     IS_CHAR_0: bool,
 
-    pub fn renderStyle(cs: Class) RenderStyle {
+    pub fn renderStyle(cs: Class, char: u8) RenderStyle {
+        if (char == '\n') return .spacing;
+        if (char == '\t') return .spacing;
         if (cs.string_literal) {
-            if (cs.IS_CHAR_0) return .keyword;
+            if (cs.IS_CHAR_0) return .control;
             return .string;
         }
+        if (char == ' ') return .spacing;
+        if (cs.@"=") return .control;
+        if (cs.@";") return .control;
+        if (cs.@".") return .control;
+        if (cs.@"(") return .control;
+        if (cs.@")") return .control;
+        if (cs.@"{") return .control;
+        if (cs.@"}") return .control;
+        if (cs.@"@") return .control;
+        if (cs.unary_operator) return .control;
         if (cs.build_in_call_expr) {
             if (cs.identifier) return .keyword;
             return .control;
         }
-        if (cs.identifier) return .uservar;
-        if (cs.assignment_statement) return .keyword;
-        return .wip;
+        if (cs.primitive_type) return .typ;
+        if (cs.identifier) {
+            if (cs.field_expression) {
+                if (cs.call_expression) return .uservar;
+                return .variable;
+            }
+            return .uservar;
+        }
+        if (cs.field_identifier) return .variable;
+        return .keyword;
     }
     pub fn format(
         classesStruct: Class,
