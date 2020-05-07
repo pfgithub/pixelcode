@@ -147,7 +147,7 @@ pub fn main() !void {
         var x: c_int = 0;
         var y: c_int = 0;
         var lineno: usize = 1;
-        const clickStart = c.IsMouseButtonDown(0);
+        const clickStart = c.IsMouseButtonPressed(0);
         const mouseposscreenspace = c.GetMousePosition();
         var mousepos: c.Vector2 = undefined;
         c.workaroundScreenToWorld2D(&mouseposscreenspace, &camera, &mousepos);
