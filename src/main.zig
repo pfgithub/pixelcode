@@ -45,7 +45,7 @@ pub fn main() !void {
 
     const alloc = std.heap.c_allocator;
 
-    const demotext =
+    const first =
         \\const std = @import("std");
         \\pub fn main() !void {
         \\    std.debug.warn("Hi!");
@@ -60,6 +60,11 @@ pub fn main() !void {
         \\\\ 12^45 = 54 + 26 % 18 'a'
         \\\\ one/two\three/four // comment
     ;
+    const demotext_ = (first) ++
+        "\\\\ unicode 👍\n";
+
+    var filetxt = try std.ArrayList(u8).initCapacity(alloc, demotext_.len);
+    filetxt.appendSlice(demotext_) catch unreachable;
 
     c.SetConfigFlags(c.FLAG_WINDOW_RESIZABLE);
     c.InitWindow(screenWidth, screenHeight, "raylib demo");
@@ -76,7 +81,7 @@ pub fn main() !void {
     camera.rotation = 0;
     camera.zoom = 2;
 
-    var tree = try parser.Tree.init(demotext);
+    var tree = try parser.Tree.init(filetxt.items);
 
     var cursorPos: usize = 1;
 
@@ -92,7 +97,40 @@ pub fn main() !void {
         if (c.IsKeyPressed(c.KEY_LEFT) and cursorPos > 0) {
             cursorPos -= 1;
         }
-        if (c.IsKeyPressed(c.KEY_RIGHT) and cursorPos < demotext.len - 1) {
+        if (c.IsKeyPressed(c.KEY_RIGHT) and cursorPos < filetxt.items.len - 1) {
+            cursorPos += 1;
+        }
+        var bkspPressed = c.IsKeyPressed(c.KEY_BACKSPACE);
+        if ((bkspPressed or c.IsKeyPressed(c.KEY_DELETE)) and cursorPos < filetxt.items.len - 1) {
+            if (bkspPressed) cursorPos -= 1;
+            _ = filetxt.orderedRemove(cursorPos);
+            const cursorPosRC = parser.RowCol.find(filetxt.items, cursorPos);
+            tree.edit(
+                cursorPos,
+                cursorPos + 1,
+                cursorPos,
+                cursorPosRC,
+                parser.RowCol.find(filetxt.items, cursorPos + 1),
+                cursorPosRC,
+            );
+            tree.reparse(filetxt.items);
+        }
+        var keyPressed = c.GetKeyPressed();
+        if (keyPressed > 0xFF) {
+            std.debug.warn("Unsupported multi byte character {}\n", .{keyPressed});
+            // multi byte character and I'm not sure how to decode it properly
+        } else if (keyPressed != 0) {
+            try filetxt.insert(cursorPos, @intCast(u8, keyPressed));
+            const cursorPosRC = parser.RowCol.find(filetxt.items, cursorPos);
+            tree.edit(
+                cursorPos,
+                cursorPos,
+                cursorPos + 1,
+                cursorPosRC,
+                cursorPosRC,
+                parser.RowCol.find(filetxt.items, cursorPos + 1),
+            );
+            tree.reparse(filetxt.items);
             cursorPos += 1;
         }
 
@@ -113,7 +151,7 @@ pub fn main() !void {
             var cursor = parser.TreeCursor.init(tree.root());
             defer cursor.deinit();
 
-            for (demotext) |char, index| {
+            for (filetxt.items) |char, index| {
                 const classes = parser.getNodeAtPosition(index, &cursor).createClassesStruct(index);
                 if (cursorPos > 0 and index == cursorPos - 1) {
                     const text = try std.fmt.allocPrint(alloc, "Classes: {}", .{classes});

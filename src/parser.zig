@@ -32,6 +32,7 @@ const Class = struct {
     primitive_type: bool = false,
     unary_operator: bool = false,
     assignment_statement: bool = false,
+    assignment_expression: bool = false,
     build_in_call_expr: bool = false,
     visibility_modifier: bool = false,
     parameters: bool = false,
@@ -214,6 +215,17 @@ pub const RowCol = struct {
     col: u64,
     fn point(cp: RowCol) c.TSPoint {
         return .{ .row = @intCast(u32, cp.row), .column = @intCast(u32, cp.col) };
+    }
+    pub fn find(text: []const u8, byte: usize) RowCol {
+        var res: RowCol = .{ .row = 0, .col = 0 };
+        for (text) |char, i| {
+            if (i == byte) break;
+            if (char == '\n') {
+                res.row = 0;
+                res.col += 1;
+            } else res.row += 1;
+        }
+        return res;
     }
 };
 
