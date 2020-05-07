@@ -1,8 +1,6 @@
 const std = @import("std");
-const c = @cImport({
-    @cInclude("raylib.h");
-    @cInclude("workaround.h");
-});
+const c = @import("./c.zig");
+const parser = @import("./parser.zig");
 
 pub fn renderChar(texture: c.Texture2D, char: u8, color: c.Color, x: c_int, y: c_int) void {
     const row = @intToFloat(f32, @divFloor(char, 16));
@@ -45,43 +43,9 @@ pub fn main() !void {
     const screenWidth = 800;
     const screenHeight = 450;
 
-    const demodata = [_]struct { text: []const u8, styl: HLStyle }{
-        .{ .text = "const", .styl = .keyword },
-        .{ .text = " ", .styl = .spacing },
-        .{ .text = "std", .styl = .uservar },
-        .{ .text = " ", .styl = .spacing },
-        .{ .text = "=", .styl = .control },
-        .{ .text = " ", .styl = .spacing },
-        .{ .text = "@", .styl = .control },
-        .{ .text = "import", .styl = .keyword },
-        .{ .text = "(\"", .styl = .control },
-        .{ .text = "std", .styl = .string },
-        .{ .text = "\");", .styl = .control },
-        .{ .text = "\n", .styl = .spacing },
-        .{ .text = "pub", .styl = .keyword },
-        .{ .text = " ", .styl = .spacing },
-        .{ .text = "fn", .styl = .keyword },
-        .{ .text = " ", .styl = .spacing },
-        .{ .text = "main", .styl = .uservar },
-        .{ .text = "()", .styl = .control },
-        .{ .text = " ", .styl = .spacing },
-        .{ .text = "!", .styl = .control },
-        .{ .text = "void", .styl = .typ },
-        .{ .text = " ", .styl = .spacing },
-        .{ .text = "{", .styl = .control },
-        .{ .text = "\n\t", .styl = .spacing },
-        .{ .text = "std", .styl = .variable },
-        .{ .text = ".", .styl = .control },
-        .{ .text = "debug", .styl = .variable },
-        .{ .text = ".", .styl = .control },
-        .{ .text = "warn", .styl = .uservar },
-        .{ .text = "(\"", .styl = .control },
-        .{ .text = "Hi!", .styl = .string },
-        .{ .text = "\");", .styl = .control },
-        .{ .text = "\n", .styl = .spacing },
-        .{ .text = "}", .styl = .control },
-        .{ .text = "\n", .styl = .spacing },
-    };
+    const alloc = std.heap.c_allocator;
+
+    const demotext = "const std = @import(\"std\");\npub fn main() !void {\n\tstd.debug.warn(\"Hi!\");\n}\n";
 
     c.SetConfigFlags(c.FLAG_WINDOW_RESIZABLE);
     c.InitWindow(screenWidth, screenHeight, "raylib demo");
@@ -98,6 +62,10 @@ pub fn main() !void {
     camera.rotation = 0;
     camera.zoom = 2;
 
+    var tree = try parser.Tree.init(demotext);
+
+    var cursorPos: usize = 1;
+
     while (!c.WindowShouldClose()) {
         const mwm = c.GetMouseWheelMove();
         if (mwm > 0) {
@@ -106,6 +74,13 @@ pub fn main() !void {
             camera.zoom -= 1;
         }
         if (camera.zoom < 1) camera.zoom = 1;
+
+        if (c.IsKeyPressed(c.KEY_LEFT) and cursorPos > 0) {
+            cursorPos -= 1;
+        }
+        if (c.IsKeyPressed(c.KEY_RIGHT) and cursorPos < demotext.len - 1) {
+            cursorPos += 1;
+        }
 
         c.BeginDrawing();
         defer c.EndDrawing();
@@ -119,9 +94,27 @@ pub fn main() !void {
         var y: c_int = 0;
         var lineno: usize = 1;
         const left: c_int = 10;
-        const top: c_int = 10;
-        for (demodata) |demodat| {
-            for (demodat.text) |char| {
+        const top: c_int = 20;
+        {
+            var cursor = parser.TreeCursor.init(tree.root());
+            defer cursor.deinit();
+
+            for (demotext) |char, index| {
+                const classes = parser.getNodeAtPosition(index, &cursor).createClassesStruct(index);
+                if (cursorPos > 0 and index == cursorPos - 1) {
+                    const text = try std.fmt.allocPrint(alloc, "Classes: {}", .{classes});
+                    defer alloc.free(text);
+
+                    for (text) |cchar, ttii| {
+                        renderChar(texture, cchar, switch (cchar) {
+                            ' ' => hex(0x313049),
+                            '.', ':' => hex(0x5b597e),
+                            else => hex(0xFFFFFF),
+                        }, @intCast(c_int, ttii * 5) + left, 5);
+                    }
+                }
+                const renderStyle = classes.renderStyle();
+
                 if (x == 0) {
                     renderChar(texture, "0123456789"[lineno % 10], hex(0xFFFFFF), x + left, y + top);
                     x += 20;
@@ -130,7 +123,7 @@ pub fn main() !void {
                 if (char == '\t') {
                     x += 1;
                 }
-                const style: Style = switch (demodat.styl) {
+                const style: Style = switch (renderStyle) {
                     .spacing => .{ .color = hex(0x313049) },
                     .control => .{ .color = hex(0x5b597e) },
                     .variable => .{ .color = hex(0xFFFFFF) },
@@ -138,8 +131,12 @@ pub fn main() !void {
                     .keyword => .{ .color = hex(0x37946e) },
                     .typ => .{ .color = hex(0xdf7126) },
                     .string => .{ .color = hex(0x6abe30) },
+                    .wip => .{ .color = hex(0xFF5555) },
                 };
 
+                if (index == cursorPos) {
+                    c.DrawRectangle(x + left, y + top, 1, 9, hex(0x5b6ee1));
+                }
                 if (char == '\t') {
                     renderChar(texture, '-', style.color, x + left, y + top);
                     x += 4;
