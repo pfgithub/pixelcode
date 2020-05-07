@@ -1,7 +1,7 @@
 # pixelcode
 
 <p align="center">
-	<img src="https://raw.githubusercontent.com/pfgithub/glfw/master/.github/demo.png" alt="">
+	<img src="https://raw.githubusercontent.com/pfgithub/pixelcode/master/.github/demo.png" alt="">
 </p>
 
 ## building
