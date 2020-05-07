@@ -167,13 +167,16 @@ pub fn main() !void {
         const mx = @floatToInt(c_int, mousepos.x);
         const my = @floatToInt(c_int, mousepos.y);
         const left: c_int = 10;
-        const top: c_int = 20;
+        const top: c_int = 35;
 
         var rescursorx: c_int = 0;
         var rescursory: c_int = 0;
 
         var cursor = parser.TreeCursor.init(tree.root());
         defer cursor.deinit();
+
+        c.DrawRectangle(left, 19, 100, 9, hex(0x313049));
+        c.DrawRectangle(left, 28, 100, 1, hex(0x5b597e));
 
         for (filetxt.items) |char, index| {
             const classes = parser.getNodeAtPosition(index, &cursor).createClassesStruct(index);
