@@ -147,62 +147,61 @@ pub fn main() !void {
         var lineno: usize = 1;
         const left: c_int = 10;
         const top: c_int = 20;
-        {
-            var cursor = parser.TreeCursor.init(tree.root());
-            defer cursor.deinit();
 
-            for (filetxt.items) |char, index| {
-                const classes = parser.getNodeAtPosition(index, &cursor).createClassesStruct(index);
-                if (cursorPos > 0 and index == cursorPos - 1) {
-                    const text = try std.fmt.allocPrint(alloc, "Classes: {}", .{classes});
-                    defer alloc.free(text);
+        var cursor = parser.TreeCursor.init(tree.root());
+        defer cursor.deinit();
 
-                    for (text) |cchar, ttii| {
-                        renderChar(texture, cchar, switch (cchar) {
-                            ' ' => hex(0x313049),
-                            '.', ':' => hex(0x5b597e),
-                            else => hex(0xFFFFFF),
-                        }, @intCast(c_int, ttii * 5) + left, 5);
-                    }
+        for (filetxt.items) |char, index| {
+            const classes = parser.getNodeAtPosition(index, &cursor).createClassesStruct(index);
+            if (cursorPos > 0 and index == cursorPos - 1) {
+                const text = try std.fmt.allocPrint(alloc, "Classes: {}", .{classes});
+                defer alloc.free(text);
+
+                for (text) |cchar, ttii| {
+                    renderChar(texture, cchar, switch (cchar) {
+                        ' ' => hex(0x313049),
+                        '.', ':' => hex(0x5b597e),
+                        else => hex(0xFFFFFF),
+                    }, @intCast(c_int, ttii * 5) + left, 5);
                 }
-                const renderStyle = classes.renderStyle(char);
+            }
+            const renderStyle = classes.renderStyle(char);
 
-                if (x == 0) {
-                    renderChar(texture, "0123456789"[lineno % 10], hex(0xFFFFFF), x + left, y + top);
-                    x += 20;
-                }
-                const style: Style = switch (renderStyle) {
-                    .spacing => .{ .color = hex(0x313049) },
-                    .control => .{ .color = hex(0x5b597e) },
-                    .variable => .{ .color = hex(0xFFFFFF) },
-                    .uservar => .{ .color = hex(0xFFFFFF), .bump = hex(0x65458f) },
-                    .keyword => .{ .color = hex(0x37946e) },
-                    .typ => .{ .color = hex(0xdf7126) },
-                    .string => .{ .color = hex(0x6abe30) },
-                    .wip => .{ .color = hex(0xFF5555) },
-                };
+            if (x == 0) {
+                renderChar(texture, "0123456789"[lineno % 10], hex(0xFFFFFF), x + left, y + top);
+                x += 20;
+            }
+            const style: Style = switch (renderStyle) {
+                .spacing => .{ .color = hex(0x313049) },
+                .control => .{ .color = hex(0x5b597e) },
+                .variable => .{ .color = hex(0xFFFFFF) },
+                .uservar => .{ .color = hex(0xFFFFFF), .bump = hex(0x65458f) },
+                .keyword => .{ .color = hex(0x37946e) },
+                .typ => .{ .color = hex(0xdf7126) },
+                .string => .{ .color = hex(0x6abe30) },
+                .wip => .{ .color = hex(0xFF5555) },
+            };
 
-                if (index == cursorPos) {
-                    c.DrawRectangle(x + left, y + top, 1, 9, hex(0x5b6ee1));
-                }
-                if (char == '\t') {
-                    renderChar(texture, '-', style.color, x + left, y + top);
-                    x += 4;
-                }
+            if (index == cursorPos) {
+                c.DrawRectangle(x + left, y + top, 1, 9, hex(0x5b6ee1));
+            }
+            if (char == '\t') {
+                renderChar(texture, '-', style.color, x + left, y + top);
+                x += 4;
+            }
 
-                if (style.bump) |bump|
-                    renderChar(texture, char, bump, x + left, y + top + 1);
-                renderChar(texture, char, style.color, x + left, y + top);
+            if (style.bump) |bump|
+                renderChar(texture, char, bump, x + left, y + top + 1);
+            renderChar(texture, char, style.color, x + left, y + top);
 
-                if (char == '\n') {
-                    x = 0;
-                    y += 11;
-                    lineno += 1;
-                } else if (char == '\t') {
-                    x += 16;
-                } else {
-                    x += 5;
-                }
+            if (char == '\n') {
+                x = 0;
+                y += 11;
+                lineno += 1;
+            } else if (char == '\t') {
+                x += 16;
+            } else {
+                x += 5;
             }
         }
     }
