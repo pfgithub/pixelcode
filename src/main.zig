@@ -2,6 +2,8 @@ const std = @import("std");
 const c = @import("./c.zig");
 const parser = @import("./parser.zig");
 
+const useCustomMouseCursor = false;
+
 pub fn renderChar(texture: c.Texture2D, char: u8, color: c.Color, x: c_int, y: c_int) void {
     const row = @intToFloat(f32, @divFloor(char, 16));
     const col = @intToFloat(f32, char % 16);
@@ -80,7 +82,7 @@ pub fn main() !void {
 
     c.SetTargetFPS(60);
 
-    c.HideCursor();
+    if (useCustomMouseCursor) c.HideCursor();
 
     var camera: c.Camera2D = std.mem.zeroes(c.Camera2D);
     camera.target = .{ .x = 0, .y = 0 };
@@ -234,12 +236,13 @@ pub fn main() !void {
 
         c.DrawRectangle(rescursorx, rescursory, 1, 9, hex(0x5b6ee1));
 
-        c.workaroundDrawTextureRec(
-            mouse,
-            &c.Rectangle{ .x = 0, .y = 0, .width = 4, .height = 7 },
-            mx,
-            my,
-            &hex(0xFFFFFF),
-        );
+        if (useCustomMouseCursor)
+            c.workaroundDrawTextureRec(
+                mouse,
+                &c.Rectangle{ .x = 0, .y = 0, .width = 4, .height = 7 },
+                mx,
+                my,
+                &hex(0xFFFFFF),
+            );
     }
 }
