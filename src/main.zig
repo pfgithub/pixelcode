@@ -75,6 +75,8 @@ pub fn main() !void {
 
     c.SetTargetFPS(60);
 
+    c.HideCursor();
+
     var camera: c.Camera2D = std.mem.zeroes(c.Camera2D);
     camera.target = .{ .x = 0, .y = 0 };
     camera.offset = .{ .x = 0, .y = 0 };
@@ -145,8 +147,17 @@ pub fn main() !void {
         var x: c_int = 0;
         var y: c_int = 0;
         var lineno: usize = 1;
+        const clickStart = c.IsMouseButtonDown(0);
+        const mouseposscreenspace = c.GetMousePosition();
+        var mousepos: c.Vector2 = undefined;
+        c.workaroundScreenToWorld2D(&mouseposscreenspace, &camera, &mousepos);
+        const mx = @floatToInt(c_int, mousepos.x);
+        const my = @floatToInt(c_int, mousepos.y);
         const left: c_int = 10;
         const top: c_int = 20;
+
+        var rescursorx: c_int = 0;
+        var rescursory: c_int = 0;
 
         var cursor = parser.TreeCursor.init(tree.root());
         defer cursor.deinit();
@@ -183,8 +194,17 @@ pub fn main() !void {
             };
 
             if (index == cursorPos) {
-                c.DrawRectangle(x + left, y + top, 1, 9, hex(0x5b6ee1));
+                rescursorx = x + left;
+                rescursory = y + top;
             }
+
+            if (clickStart and mx > x + left and my > y + top) {
+                cursorPos = index;
+                if (mx > x + left + 2 and char != '\n') {
+                    cursorPos += 1;
+                }
+            }
+
             if (char == '\t') {
                 renderChar(texture, '-', style.color, x + left, y + top);
                 x += 4;
@@ -204,5 +224,8 @@ pub fn main() !void {
                 x += 5;
             }
         }
+
+        c.DrawRectangle(rescursorx, rescursory, 1, 9, hex(0x5b6ee1));
+        c.DrawRectangle(mx, my, 1, 1, hex(0x5b6ee1));
     }
 }

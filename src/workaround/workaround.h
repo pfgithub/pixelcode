@@ -9,3 +9,12 @@ void workaroundDrawTextureRec(Texture2D texture, const Rectangle* sourceRec, int
 	);
 }
 #endif
+
+void workaroundScreenToWorld2D(const Vector2* position, const Camera2D* camera, Vector2* out);
+
+#ifdef workaround_implementation
+
+void workaroundScreenToWorld2D(const Vector2* position, const Camera2D* camera, Vector2* out) {
+	*out = GetScreenToWorld2D(*position, *camera);
+}
+#endif
