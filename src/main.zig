@@ -75,6 +75,8 @@ pub fn main() !void {
 
     const texture = c.LoadTexture("src/font.png");
     defer c.UnloadTexture(texture);
+    const mouse = c.LoadTexture("src/mouse.png");
+    defer c.UnloadTexture(mouse);
 
     c.SetTargetFPS(60);
 
@@ -231,6 +233,13 @@ pub fn main() !void {
         }
 
         c.DrawRectangle(rescursorx, rescursory, 1, 9, hex(0x5b6ee1));
-        c.DrawRectangle(mx, my, 1, 1, hex(0x5b6ee1));
+
+        c.workaroundDrawTextureRec(
+            mouse,
+            &c.Rectangle{ .x = 0, .y = 0, .width = 4, .height = 7 },
+            mx,
+            my,
+            &hex(0xFFFFFF),
+        );
     }
 }
