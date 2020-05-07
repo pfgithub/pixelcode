@@ -94,6 +94,8 @@ pub fn main() !void {
 
     var cursorPos: usize = 1;
 
+    var lastBlink: f64 = c.GetTime();
+
     while (!c.WindowShouldClose()) {
         const mwm = c.GetMouseWheelMove();
         if (mwm > 0) {
@@ -105,9 +107,11 @@ pub fn main() !void {
 
         if (c.IsKeyPressed(c.KEY_LEFT) and cursorPos > 0) {
             cursorPos -= 1;
+            lastBlink = c.GetTime();
         }
         if (c.IsKeyPressed(c.KEY_RIGHT) and cursorPos < filetxt.items.len - 1) {
             cursorPos += 1;
+            lastBlink = c.GetTime();
         }
         var bkspPressed = c.IsKeyPressed(c.KEY_BACKSPACE);
         if ((bkspPressed or c.IsKeyPressed(c.KEY_DELETE)) and cursorPos < filetxt.items.len - 1) {
@@ -123,6 +127,7 @@ pub fn main() !void {
                 cursorPosRC,
             );
             tree.reparse(filetxt.items);
+            lastBlink = c.GetTime();
         }
         var keyPressed = c.GetKeyPressed();
         if (keyPressed > 0xFF) {
@@ -141,6 +146,7 @@ pub fn main() !void {
             );
             tree.reparse(filetxt.items);
             cursorPos += 1;
+            lastBlink = c.GetTime();
         }
 
         c.BeginDrawing();
@@ -212,6 +218,7 @@ pub fn main() !void {
                 if (mx > x + left + 2 and char != '\n') {
                     cursorPos += 1;
                 }
+                lastBlink = c.GetTime();
             }
 
             if (char == '\t') {
@@ -234,7 +241,8 @@ pub fn main() !void {
             }
         }
 
-        c.DrawRectangle(rescursorx, rescursory, 1, 9, hex(0x5b6ee1));
+        if (@rem(c.GetTime() - lastBlink, 1.0) < 0.5)
+            c.DrawRectangle(rescursorx, rescursory, 1, 9, hex(0x5b6ee1));
 
         if (useCustomMouseCursor)
             c.workaroundDrawTextureRec(
