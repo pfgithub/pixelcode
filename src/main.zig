@@ -47,8 +47,10 @@ pub fn main() !void {
 
     const first =
         \\const std = @import("std");
+        \\/// the main function
         \\pub fn main() !void {
-        \\    std.debug.warn("Hi!");
+        \\    std.debug.warn("Hi!", .{});
+        \\    // print "hi" to stderr
         \\}
         \\
         \\\\Font test:
@@ -186,6 +188,8 @@ pub fn main() !void {
                 .spacing => .{ .color = hex(0x313049) },
                 .control => .{ .color = hex(0x5b597e) },
                 .variable => .{ .color = hex(0xFFFFFF) },
+                .comment => .{ .color = hex(0x6bbaff) },
+                .docs => .{ .color = hex(0xc1bfc7) },
                 .uservar => .{ .color = hex(0xFFFFFF), .bump = hex(0x65458f) },
                 .keyword => .{ .color = hex(0x37946e) },
                 .typ => .{ .color = hex(0xdf7126) },

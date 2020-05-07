@@ -16,6 +16,8 @@ pub const RenderStyle = union(enum) {
     keyword: void,
     typ: void,
     string: void,
+    comment: void,
+    docs: void,
 };
 
 const Class = struct {
@@ -37,6 +39,9 @@ const Class = struct {
     visibility_modifier: bool = false,
     parameters: bool = false,
     multiline_string_literal: bool = false,
+    line_comment: bool = false,
+    anonymous_array_expr: bool = false,
+    doc_comment: bool = false,
     @"=": bool = false,
     @";": bool = false,
     @".": bool = false,
@@ -52,6 +57,8 @@ const Class = struct {
         if (char == '\n') return .spacing;
         if (char == '\t') return .spacing;
         if (char == ' ') return .spacing;
+        if (cs.line_comment) return .comment;
+        if (cs.doc_comment) return .docs;
         if (cs.multiline_string_literal) return .string; // no differentiation between \\ and the text. also, for some reason multiline stuff is really buggy
         if (cs.string_literal) {
             if (cs.IS_CHAR_0) return .control;
