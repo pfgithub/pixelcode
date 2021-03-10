@@ -181,7 +181,7 @@ pub fn main() !void {
         for (filetxt.items) |char, index| {
             const classes = parser.getNodeAtPosition(index, &cursor).createClassesStruct(index);
             if (cursorPos > 0 and index == cursorPos - 1) {
-                const text = try std.fmt.allocPrint(alloc, "Classes: {}", .{classes});
+                const text = try std.fmt.allocPrint(alloc, "Classes: {any}", .{classes});
                 defer alloc.free(text);
 
                 for (text) |cchar, ttii| {
