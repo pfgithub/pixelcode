@@ -4,4 +4,6 @@ pub usingnamespace @cImport({
     @cInclude("workaround.h");
     @cInclude("workaround.h");
     @cInclude("tree_sitter/api.h");
+
+    @cInclude("external/stb_image.h");
 });
